@@ -37,6 +37,10 @@ export class Component {
 
   // Có thể thêm thuộc tính này để nhận dữ liệu sau khi populate
   account?: Account;
+
+  // Liên kết Category
+  @Prop({ type: String, ref: 'Category', required: true })
+  categoryId: string;
 }
 
 export const ComponentSchema = SchemaFactory.createForClass(Component);

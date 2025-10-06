@@ -67,4 +67,34 @@ export class AuthController {
       `http://localhost:5173/login/success?token=${access_token}`,
     );
   }
+
+  // =======================================================
+  // =======================================================
+  @Get('discord')
+  @UseGuards(AuthGuard('discord'))
+  async discordAuth() {
+    // Passport sẽ tự động chuyển hướng sang discord
+  }
+
+  @Get('discord/redirect')
+  @UseGuards(AuthGuard('discord'))
+  async discordAuthRedirect(
+    @Req() req: AuthenticatedRequest,
+    @Res() res: Response,
+  ) {
+    const user = req.user;
+    if (!user) {
+      return res.redirect(
+        `http://localhost:5173/login?error=authentication_failed`,
+      );
+    }
+
+    // Tái sử dụng logic tạo token từ AuthService
+    const { access_token } = await this.authService.loginWithProvider(user);
+
+    // Chuyển hướng về frontend với token
+    return res.redirect(
+      `http://localhost:5173/login/success?token=${access_token}`,
+    );
+  }
 }

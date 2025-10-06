@@ -4,8 +4,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AccountService } from '../accounts/account.service';
 import { Account } from '../accounts/account.schema';
 
-// ✅ BƯỚC 1: Định nghĩa một Interface rõ ràng cho profile từ Google
-// Điều này giúp ESLint hiểu chính xác cấu trúc dữ liệu chúng ta mong đợi
 interface IGithubProfile {
   id: string;
   displayName: string;
@@ -25,13 +23,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       'GITHUB_CLIENT_SECRET being used: ',
       clientSecret ? 'Exists (********)' : undefined,
     );
-    console.log('GITHUB_CALLBACK_URL being used:', callbackURL);
-    console.log('===================================');
+
     if (!clientID || !clientSecret || !callbackURL) {
       throw new Error('Missing Github OAuth environment variables');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       clientID,
       clientSecret,
@@ -51,7 +47,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       JSON.stringify(profile, null, 2),
     );
     // ✅ BƯỚC 2: Sử dụng ép kiểu (Type Assertion) với Interface đã tạo
-    // Bằng cách này, chúng ta nói với TypeScript: "Hãy tin tôi, tôi biết profile có dạng IGoogleProfile"
+    //
     const { id, displayName, emails, photos } = profile as IGithubProfile;
 
     const email = emails?.[0]?.value;

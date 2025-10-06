@@ -9,6 +9,7 @@ import { GoogleStrategy } from './google.strategy';
 // 3. Import JwtStrategy (sẽ tạo ở bước sau)
 import { JwtStrategy } from './jwt.strategy';
 import { GithubStrategy } from './github.strategy';
+import { DiscordStrategy } from './discord.strategy';
 
 @Module({
   imports: [
@@ -27,6 +28,12 @@ import { GithubStrategy } from './github.strategy';
   ],
   controllers: [AuthController],
   // 5. Cung cấp các service và strategy cần thiết
-  providers: [AuthService, GoogleStrategy, JwtStrategy, GithubStrategy],
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    JwtStrategy,
+    GithubStrategy,
+    DiscordStrategy,
+  ],
 })
 export class AuthModule {}

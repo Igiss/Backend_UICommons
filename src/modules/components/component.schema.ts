@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { Account } from '../accounts/account.schema'; // Import để type hinting
+import { Account } from '../accounts/account.schema';
 
 export type ComponentDocument = HydratedDocument<Component>;
 
@@ -10,8 +10,28 @@ export class Component {
   @Prop({ type: String, default: () => uuidv4() })
   _id?: string;
 
-  @Prop({ required: true })
-  title: string;
+  // Tiêu đề: không bắt buộc, có thể người dùng đặt lại
+  @Prop({ required: false })
+  title?: string;
+
+  // Kiểu component (bắt buộc)
+
+  @Prop({
+    required: true,
+    enum: [
+      'button',
+      'toggle switch',
+      'checkbox',
+      'card',
+      'loader',
+      'input',
+      'form',
+      'pattern',
+      'radio buttons',
+      'tooltips',
+    ],
+  })
+  category: string;
 
   @Prop({ required: true })
   htmlCode: string;
@@ -19,28 +39,23 @@ export class Component {
   @Prop({ required: true })
   cssCode: string;
 
-  @Prop({ required: false }) // hoặc bỏ trống nếu không bắt buộc
-  reactCode?: string;
+  @Prop() reactCode?: string;
+  @Prop() vueCode?: string;
+  @Prop() litCode?: string;
+  @Prop() svelteCode?: string;
 
-  @Prop({ required: false })
-  vueCode?: string;
-
-  @Prop({ required: false })
-  litCode?: string;
-
-  @Prop({ required: false })
-  svelteCode?: string;
-
-  // Mối quan hệ với Account
   @Prop({ type: String, ref: 'Account', required: true })
-  accountId: string; // Chỉ lưu ID
+  accountId: string;
 
-  // Có thể thêm thuộc tính này để nhận dữ liệu sau khi populate
   account?: Account;
-
-  // Liên kết Category
-  @Prop({ type: String, ref: 'Category', required: true })
-  categoryId: string;
 }
 
 export const ComponentSchema = SchemaFactory.createForClass(Component);
+
+// 🧠 Tự động sinh title nếu chưa có khi lưu
+ComponentSchema.pre('save', function (next) {
+  if (!this.title && this.category) {
+    this.title = this.category.charAt(0).toUpperCase() + this.category.slice(1);
+  }
+  next();
+});

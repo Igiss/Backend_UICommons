@@ -13,9 +13,6 @@ export class Category {
 
   @Prop()
   description?: string; // Mô tả thêm (có thể bỏ trống)
-
-  @Prop({ required: true })
-  icon: string;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);

@@ -8,45 +8,56 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ComponentService } from './component.service';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateComponentDto } from './dto/create-component.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user?: { _id: string; email?: string };
+}
 
 @ApiTags('components')
-@Controller('components') // endpoint = /components
+@Controller('components')
 export class ComponentsController {
   constructor(private readonly componentsService: ComponentService) {}
 
-  // 🟢 Tạo component mới
-
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  async create(@Body() createComponentDto: CreateComponentDto) {
-    return this.componentsService.create(createComponentDto);
+  async create(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: CreateComponentDto,
+  ) {
+    const accountId = req.user?._id;
+    const categoryId = dto.categoryId ?? 'default-ui';
+    return this.componentsService.create({ ...dto, accountId, categoryId });
   }
 
-  // 🟡 Lấy tất cả component
   @Get()
   async findAll() {
-    return await this.componentsService.findAll();
+    return this.componentsService.findAll();
   }
 
-  // 🟡 Lấy 1 component theo ID
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return await this.componentsService.findOne(id);
+    return this.componentsService.findOne(id);
   }
 
-  // 🔵 Cập nhật component theo ID
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateComponentDto: any) {
-    return await this.componentsService.update(id, updateComponentDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateComponentDto: Partial<CreateComponentDto>,
+  ) {
+    return this.componentsService.update(id, updateComponentDto);
   }
 
-  // 🔴 Xóa component theo ID
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT) // trả về 204 khi xóa thành công
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
-    return await this.componentsService.remove(id);
+    return this.componentsService.remove(id);
   }
 }

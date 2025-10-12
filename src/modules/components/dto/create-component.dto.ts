@@ -3,9 +3,28 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateComponentDto {
   @ApiProperty({
     example: 'Button',
-    description: 'Tên component',
+    description: 'Tên component (có thể trùng với type)',
+    required: false,
   })
-  title: string;
+  title?: string;
+
+  @ApiProperty({
+    example: 'button',
+    description: 'Kiểu component (bắt buộc)',
+    enum: [
+      'button',
+      'toggle',
+      'checkbox',
+      'card',
+      'loader',
+      'input',
+      'form',
+      'pattern',
+      'radio',
+      'tooltip',
+    ],
+  })
+  type: string;
 
   @ApiProperty({
     example: '<button>Click</button>',
@@ -49,7 +68,15 @@ export class CreateComponentDto {
 
   @ApiProperty({
     example: 'f3a6d2b8-47d2-4f7c-8fcd-45aefb0d9c62',
-    description: 'ID của Account tạo component',
+    description: 'Account ID (backend tự gán từ JWT)',
+    required: false,
   })
-  accountId: string;
+  accountId?: string;
+
+  @ApiProperty({
+    example: 'ui-basic',
+    description: 'Category ID chứa component',
+    required: false,
+  })
+  categoryId?: string;
 }

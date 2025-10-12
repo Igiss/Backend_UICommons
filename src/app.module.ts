@@ -2,9 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config'; // Import ConfigModule và ConfigService
 import { MongooseModule } from '@nestjs/mongoose';
 import { AccountModule } from './modules/accounts/account.module';
-import { ComponentModule } from './modules/components/component.module';
 import { AuthModule } from './modules/authenticator/auth.module'; // 1. Import AuthModule
-import { CategoryModule } from './modules/category/category.module';
+import { ComponentModule } from './modules/components/component.module';
 
 @Module({
   imports: [
@@ -22,7 +21,7 @@ import { CategoryModule } from './modules/category/category.module';
         uri: configService.get<string>('MONGO_URI'), // Lấy chuỗi kết nối từ .env
       }),
     }),
-    CategoryModule,
+
     AccountModule,
     ComponentModule,
 

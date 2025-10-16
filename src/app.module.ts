@@ -1,32 +1,23 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config'; // Import ConfigModule và ConfigService
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 import { AccountModule } from './modules/accounts/account.module';
-import { AuthModule } from './modules/authenticator/auth.module'; // 1. Import AuthModule
+import { AuthModule } from './modules/authenticator/auth.module';
 import { ComponentModule } from './modules/components/component.module';
+import { FavouriteModule } from './modules/favourites/favourite.module';
 
 @Module({
   imports: [
-    // 2. Thêm ConfigModule để đọc file .env trên toàn cục
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env', // Chỉ định file env
     }),
-
-    // Cấu hình Mongoose một cách linh hoạt hơn
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'), // Lấy chuỗi kết nối từ .env
-      }),
-    }),
-
+    MongooseModule.forRoot(
+      process.env.MONGO_URI || 'mongodb://localhost:27017/uicommons'
+    ),
     AccountModule,
     ComponentModule,
-
-    // 3. ✅ THÊM AuthModule VÀO ĐÂY
     AuthModule,
+    FavouriteModule,
   ],
 })
 export class AppModule {}

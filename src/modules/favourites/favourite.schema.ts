@@ -20,3 +20,6 @@ export class Favourite {
 }
 
 export const FavouriteSchema = SchemaFactory.createForClass(Favourite);
+
+// Tạo index unique để tránh duplicate
+FavouriteSchema.index({ accountId: 1, componentId: 1 }, { unique: true });

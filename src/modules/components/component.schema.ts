@@ -43,7 +43,8 @@ export class Component {
   @Prop() vueCode?: string;
   @Prop() litCode?: string;
   @Prop() svelteCode?: string;
-
+  @Prop({ type: String, enum: ['draft', 'public'], default: 'draft' })
+  status: string;
   @Prop({ type: String, ref: 'Account', required: true })
   accountId: string;
 

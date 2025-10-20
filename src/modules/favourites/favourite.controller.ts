@@ -1,85 +1,45 @@
 import {
+  Body,
   Controller,
-  Post,
-  Delete,
   Get,
   Param,
-  Body,
-  //UseGuards,
-  //Request
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { FavouriteService } from './favourite.service';
+import type { Request } from 'express';
 
-// Uncomment nếu bạn có JWT Guard
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FavouriteService } from './favourite.service';
+import { JwtAuthGuard } from '../authenticator/jwt-auth.guard';
+
+interface JwtRequest extends Request {
+  user: { _id: string; email: string };
+}
 
 @Controller('favourites')
-// @UseGuards(JwtAuthGuard) // Uncomment khi có authentication
+@UseGuards(JwtAuthGuard)
 export class FavouriteController {
   constructor(private readonly favouriteService: FavouriteService) {}
 
-  // Toggle favourite (thêm/xóa)
   @Post('toggle')
   async toggleFavourite(
-    @Body() body: { accountId: string; componentId: string }
+    @Req() req: JwtRequest,
+    @Body() body: { componentId: string },
   ) {
-    return this.favouriteService.toggleFavourite(body.accountId, body.componentId);
+    const accountId = req.user._id;
+    return this.favouriteService.toggleFavourite(accountId, body.componentId);
   }
 
-  // Thêm vào favourites
-  @Post()
-  async addToFavourites(
-    @Body() body: { accountId: string; componentId: string }
-  ) {
-    return this.favouriteService.addToFavourites(body.accountId, body.componentId);
-  }
-
-  // Xóa khỏi favourites
-  @Delete()
-  async removeFromFavourites(
-    @Body() body: { accountId: string; componentId: string }
-  ) {
-    await this.favouriteService.removeFromFavourites(body.accountId, body.componentId);
-    return { message: 'Removed from favourites successfully' };
-  }
-
-  // Lấy tất cả favourites của user
-  @Get('account/:accountId')
-  async getFavouritesByAccount(@Param('accountId') accountId: string) {
-    return this.favouriteService.getFavouritesByAccount(accountId);
-  }
-
-  // Kiểm tra component có trong favourites không
-  @Get('check/:accountId/:componentId')
+  @Get('check/:componentId')
   async checkIsFavourite(
-    @Param('accountId') accountId: string,
-    @Param('componentId') componentId: string
+    @Req() req: JwtRequest,
+    @Param('componentId') componentId: string,
   ) {
-    const isFavourite = await this.favouriteService.isFavourite(accountId, componentId);
+    const accountId = req.user._id;
+    const isFavourite = await this.favouriteService.isFavourite(
+      accountId,
+      componentId,
+    );
     return { isFavourite };
-  }
-
-  // Lấy danh sách componentIds đã favourite
-  @Get('components/:accountId')
-  async getFavouriteComponentIds(@Param('accountId') accountId: string) {
-    const componentIds = await this.favouriteService.getFavouriteComponentIds(accountId);
-    return { componentIds };
-  }
-
-  // Đếm số favourites của component
-  @Get('count/:componentId')
-  async countFavourites(@Param('componentId') componentId: string) {
-    const count = await this.favouriteService.countFavouritesByComponent(componentId);
-    return { count };
-  }
-
-  @Get()
-  findAll() {
-    return this.favouriteService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.favouriteService.findOne(id);
   }
 }

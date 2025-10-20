@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AccountModule } from './modules/accounts/account.module';
 import { AuthModule } from './modules/authenticator/auth.module'; // 1. Import AuthModule
 import { ComponentModule } from './modules/components/component.module';
+import { FavouriteModule } from './modules/favourites/favourite.module';
 
 @Module({
   imports: [
@@ -22,10 +23,9 @@ import { ComponentModule } from './modules/components/component.module';
       }),
     }),
 
+    FavouriteModule,
     AccountModule,
     ComponentModule,
-
-    // 3. ✅ THÊM AuthModule VÀO ĐÂY
     AuthModule,
   ],
 })

@@ -17,7 +17,7 @@ export class ProfileController {
     // Dòng này sẽ tạo ra một biến 'password' (mà chúng ta không dùng)
     // và một object mới 'userProfile' chứa TẤT CẢ các thuộc tính còn lại.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userProfile } = req.user.toObject();
+    const { password, ...userProfile } = req.user;
 
     return userProfile;
   }

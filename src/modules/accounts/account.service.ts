@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Account } from './account.schema';
+import { Model, HydratedDocument } from 'mongoose';
+import { Account, AccountDocument } from './account.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 
 interface ProviderProfile {
@@ -11,21 +11,25 @@ interface ProviderProfile {
   provider: string;
   providerId: string;
 }
+
 @Injectable()
 export class AccountService {
   constructor(
-    @InjectModel(Account.name) private readonly accountModel: Model<Account>,
+    @InjectModel(Account.name)
+    private readonly accountModel: Model<AccountDocument>,
   ) {}
 
-  async findAll(): Promise<Account[]> {
+  async findAll(): Promise<HydratedDocument<Account>[]> {
     return this.accountModel.find().exec();
   }
 
-  async findOne(id: string): Promise<Account | null> {
+  async findOne(id: string): Promise<HydratedDocument<Account> | null> {
     return this.accountModel.findById(id).exec();
   }
 
-  async create(createUserDto: CreateUserDto): Promise<Account> {
+  async create(
+    createUserDto: CreateUserDto,
+  ): Promise<HydratedDocument<Account>> {
     const createdUser = new this.accountModel(createUserDto);
     return createdUser.save();
   }
@@ -33,26 +37,28 @@ export class AccountService {
   async update(
     id: string,
     updateData: Partial<CreateUserDto>,
-  ): Promise<Account | null> {
+  ): Promise<HydratedDocument<Account> | null> {
     return this.accountModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
 
-  async remove(id: string): Promise<Account | null> {
+  async remove(id: string): Promise<HydratedDocument<Account> | null> {
     return this.accountModel.findByIdAndDelete(id).exec();
   }
-  async findOrCreateAccount(profile: ProviderProfile): Promise<Account> {
+
+  async findOrCreateAccount(
+    profile: ProviderProfile,
+  ): Promise<HydratedDocument<Account>> {
     const { email, userName, avatar, provider, providerId } = profile;
-    const Account = await this.accountModel
+    const existing = await this.accountModel
       .findOne({ providerId, provider })
       .exec();
-    if (Account) {
-      Account.userName = userName;
-      if (avatar) {
-        Account.avatar = avatar;
-      }
-      return Account.save();
+
+    if (existing) {
+      existing.userName = userName;
+      if (avatar) existing.avatar = avatar;
+      return existing.save();
     }
 
     const newAccount = new this.accountModel({

@@ -7,6 +7,7 @@ import { ComponentModule } from './modules/components/component.module';
 import { FavouriteModule } from './modules/favourites/favourite.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ViewModule } from './modules/views/view.module';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { AppService } from './app.service';
     AccountModule,
     ComponentModule,
     AuthModule,
-
+    ViewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -42,4 +42,10 @@ export class FavouriteController {
     );
     return { isFavourite };
   }
+
+  @Get('list')
+  async listFavourites(@Req() req: JwtRequest) {
+    const accountId = req.user._id;
+    return this.favouriteService.getFavouritesWithStats(accountId);
+  }
 }

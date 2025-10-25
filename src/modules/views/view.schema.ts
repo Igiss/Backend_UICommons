@@ -20,3 +20,4 @@ export class View {
 }
 
 export const ViewSchema = SchemaFactory.createForClass(View);
+ViewSchema.index({ accountId: 1, componentId: 1 }, { unique: true });

@@ -81,6 +81,10 @@ export class FavouriteService {
   async getFavouritesByAccount(accountId: string): Promise<Favourite[]> {
     return this.favouriteModel
       .find({ accountId })
+      .populate({
+        path: 'componentId',
+        populate: { path: 'accountId', select: 'username fullName avatar' },
+      })
       .sort({ createdAt: -1 })
       .exec();
   }
@@ -127,5 +131,78 @@ export class FavouriteService {
 
   async remove(id: string): Promise<Favourite | null> {
     return this.favouriteModel.findByIdAndDelete(id).exec();
+  }
+
+  async getFavouritesWithStats(accountId: string) {
+    return this.favouriteModel.aggregate([
+      { $match: { accountId } },
+
+      // Join component
+      {
+        $lookup: {
+          from: 'components',
+          localField: 'componentId',
+          foreignField: '_id',
+          as: 'component',
+        },
+      },
+      { $unwind: '$component' },
+
+      // Join author
+      {
+        $lookup: {
+          from: 'accounts',
+          localField: 'component.accountId',
+          foreignField: '_id',
+          as: 'author',
+        },
+      },
+      { $unwind: '$author' },
+
+      // Join views
+      {
+        $lookup: {
+          from: 'views',
+          localField: 'component._id',
+          foreignField: 'componentId',
+          as: 'views',
+        },
+      },
+
+      // Join favourites để đếm
+      {
+        $lookup: {
+          from: 'favourites',
+          localField: 'component._id',
+          foreignField: 'componentId',
+          as: 'favourites',
+        },
+      },
+
+      // Add counts
+      {
+        $addFields: {
+          viewsCount: { $size: '$views' },
+          favouritesCount: { $size: '$favourites' },
+        },
+      },
+
+      // Project dữ liệu cuối cùng trả về
+      {
+        $project: {
+          _id: '$component._id',
+          title: '$component.title',
+          htmlCode: '$component.htmlCode',
+          cssCode: '$component.cssCode',
+          accountId: {
+            username: '$author.userName', // <-- sửa từ username -> userName
+            fullName: '$author.userName', // nếu bạn muốn fullName cũng lấy userName
+            avatar: '$author.avatar',
+          },
+          viewsCount: 1,
+          favouritesCount: 1,
+        },
+      },
+    ]);
   }
 }

@@ -42,11 +42,18 @@ export class ComponentsController {
     return this.componentsService.findAll();
   }
 
+  @Get('user/:tab')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserComponents(@Req() req, @Param('tab') tab: string) {
+    const accountId = req.user._id;
+    return this.componentsService.findByUserAndStatus(accountId, tab);
+  }
+  
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.componentsService.findOne(id);
   }
-
+  
   @Put(':id')
   async update(
     @Param('id') id: string,

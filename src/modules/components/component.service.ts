@@ -1,7 +1,9 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Component } from './component.schema';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ComponentService {
   constructor(
     @InjectModel(Component.name)
@@ -17,6 +19,29 @@ export class ComponentService {
   async findOne(id: string): Promise<Component | null> {
     return this.componentModel.findById(id).exec();
   }
+
+  async findByUserAndStatus(accountId: string, tab: string): Promise<Component[]> {
+    const query: any = { accountId };
+
+    if (tab === 'post') {
+      query.status = 'public';
+      query.parentId = { $exists: false };
+    } else if (tab === 'variations') {
+      query.status = 'public';
+      query.parentId = { $exists: true };
+    } else if (tab === 'review') {
+      query.status = 'review';
+    } else if (tab === 'rejected') {
+      query.status = 'rejected';
+    } else if (tab === 'draft') {
+      query.status = 'draft';
+    } else {
+      throw new Error('Invalid tab');
+    }
+
+    return this.componentModel.find(query).exec();
+  }
+
   async update(
     id: string,
     updateData: Partial<any>,

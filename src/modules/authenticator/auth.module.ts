@@ -35,5 +35,6 @@ import { DiscordStrategy } from './discord.strategy';
     GithubStrategy,
     DiscordStrategy,
   ],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

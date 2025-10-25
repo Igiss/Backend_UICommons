@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, HydratedDocument } from 'mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Component } from '../components/component.schema';
 
 interface ProviderProfile {
   email: string;
@@ -17,6 +18,8 @@ export class AccountService {
   constructor(
     @InjectModel(Account.name)
     private readonly accountModel: Model<AccountDocument>,
+    @InjectModel(Component.name) 
+    private readonly componentModel: Model<Component>,
   ) {}
 
   async findAll(): Promise<HydratedDocument<Account>[]> {
@@ -26,6 +29,11 @@ export class AccountService {
   async findOne(id: string): Promise<HydratedDocument<Account> | null> {
     return this.accountModel.findById(id).exec();
   }
+
+    async findByProviderId(providerId: string, provider: string): Promise<HydratedDocument<Account> | null> {
+    return this.accountModel.findOne({ providerId, provider });
+  }
+
 
   async create(
     createUserDto: CreateUserDto,
@@ -69,5 +77,20 @@ export class AccountService {
       providerId,
     });
     return newAccount.save();
+  }
+  
+  // get profile voi posts 
+  async getProfile(accountId: string): Promise<any> {
+    const account = await this.accountModel.findById(accountId).exec();
+    if (!account) throw new Error('Account not found');
+
+    const posts = await this.componentModel.find({ accountId }).exec(); 
+    return {
+      _id: account._id,
+      userName: account.userName,
+      email: account.email,
+      avatar: account.avatar,
+      posts,
+    };
   }
 }

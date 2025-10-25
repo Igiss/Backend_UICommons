@@ -3,6 +3,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AccountDocument } from './account.schema';
+import { AccountService } from './account.service';
 
 interface AuthenticatedRequest {
   user: AccountDocument;
@@ -10,15 +11,12 @@ interface AuthenticatedRequest {
 
 @Controller('profile')
 export class ProfileController {
+  constructor(private accountService: AccountService) {}
+
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
-  getProfile(@Req() req: AuthenticatedRequest) {
-    // ✅ SỬA LỖI: Dùng destructuring để tách 'password' ra khỏi object.
-    // Dòng này sẽ tạo ra một biến 'password' (mà chúng ta không dùng)
-    // và một object mới 'userProfile' chứa TẤT CẢ các thuộc tính còn lại.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userProfile } = req.user;
-
-    return userProfile;
+  async getProfile(@Req() req: AuthenticatedRequest) {
+    const accountId = req.user._id;
+    return this.accountService.getProfile(accountId);
   }
 }

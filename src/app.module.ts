@@ -5,6 +5,7 @@ import { AccountModule } from './modules/accounts/account.module';
 import { AuthModule } from './modules/authenticator/auth.module'; // 1. Import AuthModule
 import { ComponentModule } from './modules/components/component.module';
 import { FavouriteModule } from './modules/favourites/favourite.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FavouriteModule } from './modules/favourites/favourite.module';
     AccountModule,
     ComponentModule,
     AuthModule,
+    SettingsModule, // Thêm Settings module
   ],
 })
 export class AppModule {}

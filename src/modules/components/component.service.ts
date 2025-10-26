@@ -8,6 +8,8 @@ export class ComponentService {
   constructor(
     @InjectModel(Component.name)
     private readonly componentModel: Model<Component>,
+    @InjectModel('Favourite') private favouriteModel: Model<any>,
+    @InjectModel('View') private viewModel: Model<any>,
   ) {}
   async create(createComponentDto: any): Promise<Component> {
     const createdComponent = new this.componentModel(createComponentDto);
@@ -17,7 +19,10 @@ export class ComponentService {
     return this.componentModel.find().exec();
   }
   async findOne(id: string): Promise<Component | null> {
-    return this.componentModel.findById(id).exec();
+  return this.componentModel
+    .findById(id)
+    .populate('accountId', 'userName avatar')
+    .exec();
   }
 
   async findByUserAndStatus(accountId: string, tab: string): Promise<Component[]> {
@@ -50,7 +55,31 @@ export class ComponentService {
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
+
   async remove(id: string): Promise<Component | null> {
     return this.componentModel.findByIdAndDelete(id).exec();
+  }
+
+  async findOneWithStats(id: string): Promise<any> {
+    const component = await this.componentModel
+    .findById(id)
+    .populate('accountId', 'userName avatar')
+    .exec();
+
+    if (!component) return null;
+
+    const favouritesCount = await this.favouriteModel.countDocuments({ 
+      componentId: id 
+    }).exec();
+
+    const viewsCount = await this.viewModel.countDocuments({ 
+      componentId: id 
+    }).exec();
+
+    return {
+      ...component.toObject(),
+      favouritesCount,
+      viewsCount,
+    };
   }
 }

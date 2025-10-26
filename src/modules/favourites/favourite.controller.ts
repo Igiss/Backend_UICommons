@@ -48,4 +48,10 @@ export class FavouriteController {
     const accountId = req.user._id;
     return this.favouriteService.getFavouritesWithStats(accountId);
   }
+
+  @Get('count/:componentId')
+  async getCount(@Param('componentId') componentId: string) {
+    const count = await this.favouriteService.getCountByComponent(componentId);
+    return { count };
+  }
 }

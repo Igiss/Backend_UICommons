@@ -8,7 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-  UseGuards,
+UseGuards,
   Req,
 } from '@nestjs/common';
 import { ComponentService } from './component.service';
@@ -49,6 +49,11 @@ export class ComponentsController {
     return this.componentsService.findByUserAndStatus(accountId, tab);
   }
   
+  @Get(':id/with-stats')
+  async findOneWithStats(@Param('id') id: string) {
+    return this.componentsService.findOneWithStats(id);
+  }
+  
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.componentsService.findOne(id);
@@ -67,4 +72,6 @@ export class ComponentsController {
   async remove(@Param('id') id: string) {
     return this.componentsService.remove(id);
   }
+
+
 }

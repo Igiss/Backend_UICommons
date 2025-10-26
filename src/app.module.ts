@@ -8,6 +8,7 @@ import { FavouriteModule } from './modules/favourites/favourite.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ViewModule } from './modules/views/view.module';
+import { CommentModule } from './modules/comments/comment.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ViewModule } from './modules/views/view.module';
     ComponentModule,
     AuthModule,
     ViewModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

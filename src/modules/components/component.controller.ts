@@ -8,10 +8,11 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-UseGuards,
+  UseGuards,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { ComponentService } from './component.service';
+import { ComponentService, AggregatedComponent } from './component.service';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateComponentDto } from './dto/create-component.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -33,32 +34,45 @@ export class ComponentsController {
     @Body() dto: CreateComponentDto,
   ) {
     const accountId = req.user?._id;
+
+    if (!accountId) {
+      throw new UnauthorizedException('User not found');
+    }
+
     const categoryId = dto.categoryId ?? 'default-ui';
     return this.componentsService.create({ ...dto, accountId, categoryId });
   }
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<AggregatedComponent[]> {
     return this.componentsService.findAll();
   }
 
   @Get('user/:tab')
   @UseGuards(AuthGuard('jwt'))
-  async getUserComponents(@Req() req, @Param('tab') tab: string) {
-    const accountId = req.user._id;
+  async getUserComponents(
+    @Req() req: AuthenticatedRequest,
+    @Param('tab') tab: string,
+  ) {
+    const accountId = req.user?._id;
+    // 2. Thêm khối kiểm tra
+    if (!accountId) {
+      throw new UnauthorizedException('User not found');
+    }
+    // 3. Dùng 'accountId' đã an toàn
     return this.componentsService.findByUserAndStatus(accountId, tab);
   }
-  
+
   @Get(':id/with-stats')
-  async findOneWithStats(@Param('id') id: string) {
+  async findOneWithStats(@Param('id') id: string): Promise<any> {
     return this.componentsService.findOneWithStats(id);
   }
-  
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.componentsService.findOne(id);
   }
-  
+
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -72,6 +86,4 @@ export class ComponentsController {
   async remove(@Param('id') id: string) {
     return this.componentsService.remove(id);
   }
-
-
 }

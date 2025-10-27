@@ -113,7 +113,7 @@ export class FavouriteService {
   }
 
   async getCountByComponent(componentId: string): Promise<number> {
-  return this.favouriteModel.countDocuments({ componentId }).exec();
+    return this.favouriteModel.countDocuments({ componentId }).exec();
   }
 
   async findAll(): Promise<Favourite[]> {

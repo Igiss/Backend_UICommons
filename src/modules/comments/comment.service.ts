@@ -20,7 +20,10 @@ export class CommentService {
   }
 
   async findAll(): Promise<Comment[]> {
-    return this.commentModel.find().populate('accountId', 'userName avatar').exec();
+    return this.commentModel
+      .find()
+      .populate('accountId', 'userName avatar')
+      .exec();
   }
 
   async findByComponentId(componentId: string): Promise<Comment[]> {
@@ -32,7 +35,10 @@ export class CommentService {
   }
 
   async findOne(id: string): Promise<Comment | null> {
-    return this.commentModel.findById(id).populate('accountId', 'userName avatar').exec();
+    return this.commentModel
+      .findById(id)
+      .populate('accountId', 'userName avatar')
+      .exec();
   }
 
   async update(id: string, updateData: Partial<any>): Promise<Comment | null> {

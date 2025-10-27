@@ -18,7 +18,7 @@ export class AccountService {
   constructor(
     @InjectModel(Account.name)
     private readonly accountModel: Model<AccountDocument>,
-    @InjectModel(Component.name) 
+    @InjectModel(Component.name)
     private readonly componentModel: Model<Component>,
   ) {}
 
@@ -30,10 +30,12 @@ export class AccountService {
     return this.accountModel.findById(id).exec();
   }
 
-    async findByProviderId(providerId: string, provider: string): Promise<HydratedDocument<Account> | null> {
+  async findByProviderId(
+    providerId: string,
+    provider: string,
+  ): Promise<HydratedDocument<Account> | null> {
     return this.accountModel.findOne({ providerId, provider });
   }
-
 
   async create(
     createUserDto: CreateUserDto,
@@ -78,13 +80,13 @@ export class AccountService {
     });
     return newAccount.save();
   }
-  
-  // get profile voi posts 
+
+  // get profile voi posts
   async getProfile(accountId: string): Promise<any> {
     const account = await this.accountModel.findById(accountId).exec();
     if (!account) throw new Error('Account not found');
 
-    const posts = await this.componentModel.find({ accountId }).exec(); 
+    const posts = await this.componentModel.find({ accountId }).exec();
     return {
       _id: account._id,
       userName: account.userName,

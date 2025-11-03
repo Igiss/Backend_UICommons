@@ -139,9 +139,9 @@ export class FavouriteService {
 
   async getFavouritesWithStats(accountId: string) {
     return this.favouriteModel.aggregate([
-      { $match: { accountId } },
+      { $match: { accountId: accountId } },
 
-      // Join component
+      // Join với components (string -> string)
       {
         $lookup: {
           from: 'components',
@@ -152,7 +152,7 @@ export class FavouriteService {
       },
       { $unwind: '$component' },
 
-      // Join author
+      // Join với accounts (string -> string)
       {
         $lookup: {
           from: 'accounts',
@@ -161,7 +161,7 @@ export class FavouriteService {
           as: 'author',
         },
       },
-      { $unwind: '$author' },
+      { $unwind: { path: '$author', preserveNullAndEmptyArrays: true } },
 
       // Join views
       {
@@ -173,7 +173,7 @@ export class FavouriteService {
         },
       },
 
-      // Join favourites để đếm
+      // Join favourites (để đếm)
       {
         $lookup: {
           from: 'favourites',
@@ -183,7 +183,7 @@ export class FavouriteService {
         },
       },
 
-      // Add counts
+      // Đếm views + favourites
       {
         $addFields: {
           viewsCount: { $size: '$views' },
@@ -191,7 +191,7 @@ export class FavouriteService {
         },
       },
 
-      // Project dữ liệu cuối cùng trả về
+      // Dữ liệu trả về
       {
         $project: {
           _id: '$component._id',
@@ -199,8 +199,8 @@ export class FavouriteService {
           htmlCode: '$component.htmlCode',
           cssCode: '$component.cssCode',
           accountId: {
-            username: '$author.userName', // <-- sửa từ username -> userName
-            fullName: '$author.userName', // nếu bạn muốn fullName cũng lấy userName
+            username: '$author.username',
+            fullName: '$author.fullName',
             avatar: '$author.avatar',
           },
           viewsCount: 1,

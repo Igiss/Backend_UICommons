@@ -61,15 +61,19 @@ export class AccountService {
     profile: ProviderProfile,
   ): Promise<HydratedDocument<Account>> {
     const { email, userName, avatar, provider, providerId } = profile;
+
+    // 🔍 Kiểm tra có user cũ chưa
     const existing = await this.accountModel
       .findOne({ providerId, provider })
       .exec();
-
     if (existing) {
       existing.userName = userName;
       if (avatar) existing.avatar = avatar;
       return existing.save();
     }
+
+    // ✅ Gán role khi tạo mới
+    const role = email === 'haikhuong2000@gmail.com' ? 'admin' : 'user';
 
     const newAccount = new this.accountModel({
       email,
@@ -77,6 +81,7 @@ export class AccountService {
       avatar,
       provider,
       providerId,
+      role, // 👈 THÊM DÒNG NÀY
     });
     return newAccount.save();
   }
@@ -94,5 +99,8 @@ export class AccountService {
       avatar: account.avatar,
       posts,
     };
+  }
+  async findById(id: string) {
+    return this.accountModel.findById(id).exec();
   }
 }

@@ -4,8 +4,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AccountService } from '../accounts/account.service';
 import { Account } from '../accounts/account.schema';
 
-// ✅ BƯỚC 1: Định nghĩa một Interface rõ ràng cho profile từ Google
-// Điều này giúp ESLint hiểu chính xác cấu trúc dữ liệu chúng ta mong đợi
 interface IGoogleProfile {
   id: string;
   displayName: string;

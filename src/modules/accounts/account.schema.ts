@@ -27,6 +27,9 @@ export class Account {
 
   @Prop({ required: true })
   providerId: string;
+
+  @Prop({ type: String, enum: ['user', 'admin'], default: 'user' })
+  role: 'user' | 'admin';
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

@@ -17,6 +17,15 @@ export class ProfileController {
   @Get('me')
   async getProfile(@Req() req: AuthenticatedRequest) {
     const accountId = req.user._id;
-    return this.accountService.getProfile(accountId);
+    const account = await this.accountService.findById(accountId);
+    if (!account) return { message: 'Account not found' };
+
+    return {
+      _id: account._id,
+      email: account.email,
+      userName: account.userName,
+      avatar: account.avatar,
+      role: account.role,
+    };
   }
 }

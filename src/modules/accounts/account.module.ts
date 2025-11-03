@@ -8,8 +8,9 @@ import { Component, ComponentSchema } from '../components/component.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Account.name, schema: AccountSchema },
-    { name: Component.name, schema: ComponentSchema },
+    MongooseModule.forFeature([
+      { name: Account.name, schema: AccountSchema },
+      { name: Component.name, schema: ComponentSchema },
     ]),
   ],
   controllers: [AccountController, ProfileController], // ✅ đúng

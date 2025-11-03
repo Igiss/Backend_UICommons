@@ -7,12 +7,11 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { CommentService } from './comment.service';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from '../authenticator/jwt-auth.guard';
+import { CommentService } from './comment.service';
 
 interface AuthRequest {
   user: { _id: string; email: string };

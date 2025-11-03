@@ -22,7 +22,6 @@ export interface AggregatedComponent {
     fullName: string;
     avatar: string;
   } | null;
-  // Thêm các trường khác nếu có
   reactCode?: string;
   vueCode?: string;
   litCode?: string;
@@ -34,15 +33,17 @@ export class ComponentService {
   constructor(
     @InjectModel(Component.name)
     private readonly componentModel: Model<Component>,
-    // 3. Sửa lỗi chính tả cSpell: 'Favourite' -> 'Favorite'
-    // Hoặc thêm 'Favourite' vào từ điển cSpell (xem ở cuối)
+
     @InjectModel('Favourite') private favouriteModel: Model<any>,
     @InjectModel('View') private viewModel: Model<any>,
   ) {}
 
   async create(createComponentDto: any): Promise<Component> {
-    const createdComponent = new this.componentModel(createComponentDto);
-    return createdComponent.save();
+    const newComponent = new this.componentModel({
+      ...createComponentDto,
+      status: 'review',
+    });
+    return newComponent.save();
   }
 
   // 4. Sửa hàm findAll để dùng interface
@@ -178,5 +179,70 @@ export class ComponentService {
       favouritesCount,
       viewsCount,
     };
+  }
+
+  async findByStatus(status: string): Promise<AggregatedComponent[]> {
+    const result = await this.componentModel
+      .aggregate<AggregatedComponent>([
+        {
+          $match: { status: status }, // 1. Lọc theo status
+        },
+        // Thêm $lookup cho Views và Favourites (để khớp với AggregatedComponent)
+        // Lưu ý: Nếu Views và Favourites collection sử dụng String componentId, bước này sẽ OK.
+        {
+          $lookup: {
+            from: 'views',
+            localField: '_id',
+            foreignField: 'componentId',
+            as: 'views',
+          },
+        },
+        {
+          $lookup: {
+            from: 'favourites',
+            localField: '_id',
+            foreignField: 'componentId',
+            as: 'favourites',
+          },
+        },
+        // 2. Lookup thông tin tác giả (Tên collection là 'accounts')
+        {
+          $lookup: {
+            from: 'accounts',
+            localField: 'accountId', // String (UUID)
+            foreignField: '_id', // Phải là String (UUID) trong accounts collection
+            as: 'authorDetails',
+          },
+        },
+        {
+          $unwind: {
+            path: '$authorDetails',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $addFields: {
+            viewsCount: { $size: '$views' },
+            favouritesCount: { $size: '$favourites' },
+            accountId: {
+              _id: '$authorDetails._id',
+              username: '$authorDetails.userName', // MAP 'userName' TỪ DB THÀNH 'username'
+              fullName: '$authorDetails.fullName',
+              avatar: '$authorDetails.avatar',
+            },
+          },
+        },
+        {
+          $project: {
+            views: 0,
+            favourites: 0,
+            authorDetails: 0,
+          },
+        },
+      ])
+      .exec();
+
+    console.log(`🔍 findByStatus(${status}) => ${result.length} items`);
+    return result ?? [];
   }
 }

@@ -65,16 +65,12 @@ export class SettingsService {
     return settings;
   }
 
-  // Tính % hoàn thiện profile (dựa trên các field đã điền)
+  // Tính % hoàn thiện profile (chỉ còn name và bio)
   async calculateProfileCompletion(accountId: string): Promise<number> {
     const settings = await this.getByAccountId(accountId);
     
     const fields = [
       settings.name,
-      settings.location,
-      settings.company,
-      settings.twitter,
-      settings.website,
       settings.bio,
     ];
 

@@ -11,18 +11,6 @@ export class Settings extends Document {
   name: string;
 
   @Prop({ type: String, default: '' })
-  location: string;
-
-  @Prop({ type: String, default: '' })
-  company: string;
-
-  @Prop({ type: String, default: '' })
-  twitter: string;
-
-  @Prop({ type: String, default: '' })
-  website: string;
-
-  @Prop({ type: String, default: '' })
   bio: string;
 
   // Email Settings

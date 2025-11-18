@@ -4,7 +4,7 @@ import { IsString, IsOptional } from 'class-validator';
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()
-  name?: string; // Tên hiển thị
+  userName?: string; // Đổi từ name -> userName
 
   @IsOptional()
   @IsString()

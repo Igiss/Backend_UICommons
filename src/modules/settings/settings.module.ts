@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SettingsController } from './settings.controller';
 import { SettingsService } from './settings.service';
-import { Settings, SettingsSchema } from './settings.schema';
+import { Account, AccountSchema } from '../accounts/account.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Settings.name, schema: SettingsSchema }, // Đăng ký schema với Mongoose
+      { name: Account.name, schema: AccountSchema },
     ]),
   ],
   controllers: [SettingsController],
   providers: [SettingsService],
-  exports: [SettingsService], // Export để module khác có thể dùng
+  exports: [SettingsService],
 })
 export class SettingsModule {}

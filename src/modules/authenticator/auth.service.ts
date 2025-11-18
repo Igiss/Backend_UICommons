@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'; // 1. Nhớ import Injectable
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AccountService } from '../accounts/account.service';
 
@@ -21,12 +21,29 @@ export class AuthService {
     profile: ProviderProfile,
   ): Promise<{ access_token: string }> {
     const account = await this.accountService.findOrCreateAccount(profile);
+
     if (!account) {
       throw new Error('Account not found or created');
     }
-    const payload = { sub: account._id, email: account.email };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+
+    console.log('=== LOGIN WITH PROVIDER ===');
+    console.log('account._id:', account._id);
+    console.log('account._id type:', typeof account._id);
+    console.log('account.email:', account.email);
+
+    // Convert _id sang string để chắc chắn
+    const accountId = account._id.toString();
+
+    const payload = { sub: accountId, email: account.email };
+
+    console.log('=== JWT PAYLOAD ===');
+    console.log('payload:', JSON.stringify(payload, null, 2));
+
+    const token = this.jwtService.sign(payload);
+
+    console.log('=== GENERATED TOKEN ===');
+    console.log('token:', token);
+
+    return { access_token: token };
   }
 }

@@ -1,32 +1,56 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
+import { Document } from 'mongoose';
 
-export type AccountDocument = HydratedDocument<Account>;
+export type AccountDocument = Account & Document;
 
-@Schema({ timestamps: true }) // Thêm timestamps để có createdAt, updatedAt
-export class Account {
-  // Ghi đè _id mặc định
-  @Prop({ type: String, default: () => uuidv4() })
-  _id?: string;
+@Schema({ timestamps: true, _id: false }) // Tắt auto _id
+export class Account extends Document {
+  @Prop({ type: String, required: true }) // Dùng String cho UUID
+  declare _id: string; // Thêm declare để override _id từ Document
 
-  @Prop({ required: true })
-  userName: string;
+  @Prop({ type: String, required: false }) // Không required
+  username: string;
 
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: false })
-  password: string; // Lưu ý: Mật khẩu nên được hash trước khi lưu
+  @Prop({ type: String, required: false }) // Không required
+  password: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: false })
+  refreshToken: string;
+
+  // Profile Settings
+  @Prop({ type: String, required: false }) // userName có sẵn từ OAuth
+  userName: string; // Tên hiển thị - Field này đã có trong MongoDB
+
+  @Prop({ type: String, required: false }) // Không required, sẽ thêm khi user update
+  bio: string;
+
+  @Prop({ type: String, required: false })
   avatar: string;
 
-  @Prop({ required: true })
+  // Provider fields (cho OAuth login)
+  @Prop({ type: String, required: false })
   provider: string;
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: false })
   providerId: string;
+
+  // Email Settings
+  @Prop({ type: Boolean, required: false })
+  emailNotifications: boolean;
+
+  @Prop({
+    type: Object,
+    required: false,
+  })
+  notificationPreferences: {
+    postReviews: boolean;
+    comments: boolean;
+    newChallenges: boolean;
+    socialMedia: boolean;
+  };
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

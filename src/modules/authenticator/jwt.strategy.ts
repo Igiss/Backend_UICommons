@@ -3,7 +3,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AccountService } from '../accounts/account.service';
-import { Account } from '../accounts/account.schema';
 
 type JwtPayload = {
   sub: string;
@@ -28,19 +27,21 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<Account> {
+  async validate(payload: JwtPayload) {
     if (!payload?.sub) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
+    // Verify user exists
     const user = await this.accountService.findOne(payload.sub);
-
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    // Mongoose Document => plain object
-    const plainUser: Account = user.toObject();
-    return plainUser;
+    // Return payload với sub field - Đơn giản nhất!
+    return {
+      sub: payload.sub,
+      email: payload.email,
+    };
   }
 }

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export type ViewDocument = HydratedDocument<View>;
 
-@Schema({ timestamps: true }) 
+@Schema({ timestamps: true })
 export class View {
   @Prop({ type: String, default: () => uuidv4() })
   _id?: string;
@@ -14,7 +14,7 @@ export class View {
 
   @Prop({ type: String, ref: 'Account' }) // if logged in
   accountId?: string;
-  
+
   @Prop({ type: Date, default: Date.now })
   viewedAt: Date;
 

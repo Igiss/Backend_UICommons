@@ -1,17 +1,6 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ViewService } from './view.service';
-import { JwtAuthGuard } from '../authenticator/jwt-auth.guard';
 
 interface AuthRequest extends Request {
   user?: { _id: string };
@@ -28,7 +17,7 @@ export class ViewController {
   ) {
     const accountId = req.user?._id;
     const ipAddress = req.ip || req.socket.remoteAddress;
-    
+
     await this.viewService.recordView(componentId, accountId, ipAddress);
     return { success: true };
   }

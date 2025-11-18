@@ -1,12 +1,14 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { View, ViewDocument } from './view.schema';
+import { View } from './view.schema';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
+import { UserPointsService } from '../Points/point.service';
 
 @Injectable()
 export class ViewService {
   constructor(
     @InjectModel(View.name) private readonly viewModel: Model<View>,
+    private readonly pointsService: UserPointsService,
   ) {}
 
   async create(createViewDto: any) {
@@ -39,12 +41,19 @@ export class ViewService {
   ): Promise<void> {
     // Check if already viewed in last 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
-    const query: any = { 
-      componentId, 
-      viewedAt: { $gte: oneDayAgo } 
+
+    type ViewQuery = {
+      componentId: string;
+      viewedAt: { $gte: Date };
+      accountId?: string;
+      ipAddress?: string;
     };
-    
+
+    const query: ViewQuery = {
+      componentId,
+      viewedAt: { $gte: oneDayAgo },
+    };
+
     if (accountId) {
       query.accountId = accountId;
     } else if (ipAddress) {
@@ -52,13 +61,16 @@ export class ViewService {
     }
 
     const existing = await this.viewModel.findOne(query);
-    
+
     if (!existing) {
       await this.viewModel.create({
         componentId,
         accountId,
         ipAddress,
       });
+      if (accountId) {
+        await this.pointsService.addPoint(accountId, componentId, 'view', 1);
+      }
     }
   }
   // 📊 Đếm tổng số lượt xem của 1 component
@@ -69,7 +81,7 @@ export class ViewService {
   async getUniqueViewCount(componentId: string): Promise<number> {
     const views = await this.viewModel.find({ componentId }).exec();
     const uniqueViewers = new Set(
-      views.map(v => v.accountId || v.ipAddress).filter(Boolean)
+      views.map((v) => v.accountId || v.ipAddress).filter(Boolean),
     );
     return uniqueViewers.size;
   }

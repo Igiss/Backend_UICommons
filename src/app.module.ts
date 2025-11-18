@@ -9,6 +9,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ViewModule } from './modules/views/view.module';
 import { CommentModule } from './modules/comments/comment.module';
+import { PointModule } from './modules/Points/point.module';
+import { LeaderboardModule } from './modules/ranking/leaderboard.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { CommentModule } from './modules/comments/comment.module';
     AuthModule,
     ViewModule,
     CommentModule,
+    PointModule,
+    LeaderboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

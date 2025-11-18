@@ -83,7 +83,7 @@ export class ComponentsController {
   @Get(':id/with-stats')
   async findOneWithStats(@Param('id') id: string): Promise<any> {
     // Gọi hàm findByStatus (tên mới của findOneWithStats trong service)
-    return await this.componentsService.findByStatus(id);
+    return await this.componentsService.findOneWithStats(id);
   }
 
   @Get(':id')

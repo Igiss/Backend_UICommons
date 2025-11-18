@@ -6,12 +6,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Favourite } from './favourite.schema';
+import { UserPointsService } from '../Points/point.service';
 
 @Injectable()
 export class FavouriteService {
   constructor(
     @InjectModel(Favourite.name)
     private readonly favouriteModel: Model<Favourite>,
+    private readonly pointsService: UserPointsService,
   ) {}
 
   // Thêm component vào favorites
@@ -53,30 +55,40 @@ export class FavouriteService {
   async toggleFavourite(
     accountId: string,
     componentId: string,
-  ): Promise<{
-    isFavourite: boolean;
-    message: string;
-  }> {
+  ): Promise<{ isFavourite: boolean; message: string }> {
     const existing = await this.favouriteModel.findOne({
       accountId,
       componentId,
     });
 
-    if (existing) {
-      await this.favouriteModel.deleteOne({ accountId, componentId });
-      return {
-        isFavourite: false,
-        message: 'Removed from favourites',
-      };
-    } else {
+    if (!existing) {
+      // ❤️ Thêm favourite
       await this.favouriteModel.create({ accountId, componentId });
-      return {
-        isFavourite: true,
-        message: 'Added to favourites',
-      };
-    }
-  }
 
+      // ➕ Cộng điểm
+      await this.pointsService.addPoint(
+        accountId,
+        componentId,
+        'favourite',
+        +2,
+      );
+
+      return { isFavourite: true, message: 'Added' };
+    }
+
+    // ❌ Đã tồn tại → bỏ favourite
+    await this.favouriteModel.deleteOne({ accountId, componentId });
+
+    // ➖ Trừ điểm
+    await this.pointsService.addPoint(
+      accountId,
+      componentId,
+      'unfavourite',
+      -2,
+    );
+
+    return { isFavourite: false, message: 'Removed' };
+  }
   // Lấy tất cả favourites của user
   async getFavouritesByAccount(accountId: string): Promise<Favourite[]> {
     return this.favouriteModel

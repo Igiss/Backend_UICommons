@@ -12,6 +12,7 @@ import {
 import { AccountService } from './account.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../authenticator/jwt-auth.guard';
+import { AdminGuard } from '../authenticator/admin.guard';
 
 interface AuthenticatedRequest extends Request {
   user?: { _id: string; email: string; role: string };
@@ -68,5 +69,35 @@ export class AccountController {
       avatar: account.avatar,
       role: account.role,
     };
+  }
+// ====== role management (admin only)
+
+  @UseGuards(AdminGuard)
+  @Get('eligible-for-promotion')
+  async getEligibleUsers() {
+    return this.accountService.getEligibleUsers();
+  }
+
+  @UseGuards(AdminGuard)
+  @Get('reviewers')
+  async getReviewers() {
+    return this.accountService.getReviewers();
+  }
+
+  @UseGuards(AdminGuard)
+  @Put(':id/promote')
+  async promoteUser(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') userId: string,
+    @Body() body: { role: 'reviewer' | 'moderator' },
+  ) {
+    const adminId = req.user!._id;
+    return this.accountService.promoteUser(userId, body.role, adminId);
+  }
+
+  @UseGuards(AdminGuard)
+  @Put(':id/demote')
+  async demoteUser(@Param('id') userId: string) {
+    return this.accountService.demoteUser(userId);
   }
 }

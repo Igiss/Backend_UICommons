@@ -4,6 +4,7 @@ import { Model, HydratedDocument } from 'mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Component } from '../components/component.schema';
+import { BadRequestException } from '@nestjs/common';
 
 interface ProviderProfile {
   email: string;
@@ -62,26 +63,35 @@ export class AccountService {
   ): Promise<HydratedDocument<Account>> {
     const { email, userName, avatar, provider, providerId } = profile;
 
-    // 🔍 Kiểm tra có user cũ chưa
+    // Check if user already exists
     const existing = await this.accountModel
       .findOne({ providerId, provider })
       .exec();
+    
     if (existing) {
       existing.userName = userName;
       if (avatar) existing.avatar = avatar;
+      
+      if (email === 'duothehiep@gmail.com' && existing.role !== 'admin') {
+        console.log('Promoting user to admin:', email);
+        existing.role = 'admin';
+      }
+      
       return existing.save();
     }
 
-    // ✅ Gán role khi tạo mới
-    const role = email === 'haikhuong2000@gmail.com' ? 'admin' : 'user';
-
+    // Create new account
+    const role = email === 'duothehiep@gmail.com' ? 'admin' : 'user';
+    
+    console.log('Creating new account:', { email, role });
+    
     const newAccount = new this.accountModel({
       email,
       userName,
       avatar,
       provider,
       providerId,
-      role, // 👈 THÊM DÒNG NÀY
+      role,
     });
     return newAccount.save();
   }
@@ -100,7 +110,71 @@ export class AccountService {
       posts,
     };
   }
+
   async findById(id: string) {
     return this.accountModel.findById(id).exec();
+  }
+
+  /**
+   * Promote a user to reviewer or moderator
+   * Only admins can promote users
+   */
+  async promoteUser(
+    userId: string,
+    newRole: 'reviewer' | 'moderator',
+    promotedByAdminId: string,
+  ): Promise<HydratedDocument<Account>> {
+    const user = await this.accountModel.findById(userId).exec();
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Prevent promoting admins
+    if (user.role === 'admin') {
+      throw new BadRequestException('Cannot change admin role');
+    }
+
+    // Validate new role
+    if (!['reviewer', 'moderator'].includes(newRole)) {
+      throw new BadRequestException('Invalid role');
+    }
+
+    user.role = newRole;
+    user.promotedBy = promotedByAdminId;
+    user.promotedAt = new Date();
+
+    return user.save();
+  }
+
+  async demoteUser(userId: string): Promise<HydratedDocument<Account>> {
+    const user = await this.accountModel.findById(userId).exec();
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Prevent demoting admins
+    if (user.role === 'admin') {
+      throw new BadRequestException('Cannot demote admin');
+    }
+
+    user.role = 'user';
+    user.promotedBy = undefined;
+    user.promotedAt = undefined;
+
+    return user.save();
+  }
+
+  async getReviewers(): Promise<HydratedDocument<Account>[]> {
+    return this.accountModel
+      .find({ role: { $in: ['reviewer', 'moderator'] } })
+      .populate('promotedBy', 'userName avatar')
+      .exec();
+  }
+
+  async getEligibleUsers(): Promise<HydratedDocument<Account>[]> {
+    return this.accountModel
+      .find({ role: 'user' })
+      .select('_id userName email avatar')
+      .exec();
   }
 }

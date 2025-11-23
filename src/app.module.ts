@@ -11,6 +11,7 @@ import { ViewModule } from './modules/views/view.module';
 import { CommentModule } from './modules/comments/comment.module';
 import { PointModule } from './modules/Points/point.module';
 import { LeaderboardModule } from './modules/ranking/leaderboard.module';
+import { ChallengeModule } from './modules/challenges/challenge.module'; 
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { LeaderboardModule } from './modules/ranking/leaderboard.module';
     CommentModule,
     PointModule,
     LeaderboardModule,
+    ChallengeModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

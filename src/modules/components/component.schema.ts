@@ -15,7 +15,6 @@ export class Component {
   title?: string;
 
   // Kiểu component (bắt buộc)
-
   @Prop({
     required: true,
     enum: [
@@ -43,6 +42,7 @@ export class Component {
   @Prop() vueCode?: string;
   @Prop() litCode?: string;
   @Prop() svelteCode?: string;
+
   @Prop({
     type: String,
     enum: ['draft', 'public', 'rejected', 'review'],
@@ -56,12 +56,15 @@ export class Component {
   @Prop({ type: Types.ObjectId, ref: 'Component' }) // variation link toi original
   parentId?: Types.ObjectId;
 
+  @Prop({ type: String, ref: 'Challenge' })
+  challengeId?: string;
+
   account?: Account;
 }
 
 export const ComponentSchema = SchemaFactory.createForClass(Component);
 
-// 🧠 Tự động sinh title nếu chưa có khi lưu
+// Tự động sinh title nếu chưa có khi lưu
 ComponentSchema.pre('save', function (next) {
   if (!this.title && this.category) {
     this.title = this.category.charAt(0).toUpperCase() + this.category.slice(1);

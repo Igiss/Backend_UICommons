@@ -18,13 +18,28 @@ export class UserPointsService {
   async addPoint(
     userId: string,
     componentId: string,
-    action: 'view' | 'favourite' | 'unfavourite',
+    action: 'view' | 'favourite' | 'unfavourite' | 'upload' | 'challenge_prize',
     points: number,
   ): Promise<UserPointsHistory> {
     return this.pointsModel.create({
       userId,
       componentId,
       action,
+      points,
+    });
+  }
+
+  async awardChallengePrize(
+    userId: string,
+    challengeId: string,
+    componentId: string,
+    points: number,
+  ): Promise<UserPointsHistory> {
+    return this.pointsModel.create({
+      userId,
+      componentId,
+      challengeId,
+      action: 'challenge_prize',
       points,
     });
   }
@@ -36,5 +51,27 @@ export class UserPointsService {
     ]);
 
     return result.length > 0 ? result[0].total : 0;
+  }
+
+  async getPointsBreakdown(userId: string): Promise<any> {
+    const breakdown = await this.pointsModel.aggregate([
+      { $match: { userId } },
+      {
+        $group: {
+          _id: '$action',
+          total: { $sum: '$points' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return breakdown;
+  }
+
+  async getChallengeWinnings(userId: string): Promise<UserPointsHistory[]> {
+    return this.pointsModel
+      .find({ userId, action: 'challenge_prize' })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 }

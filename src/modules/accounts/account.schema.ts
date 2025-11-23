@@ -28,8 +28,18 @@ export class Account {
   @Prop({ required: true })
   providerId: string;
 
-  @Prop({ type: String, enum: ['user', 'admin'], default: 'user' })
-  role: 'user' | 'admin';
+  @Prop({ 
+    type: String, 
+    enum: ['user', 'reviewer', 'moderator', 'admin'], 
+    default: 'user' 
+  })
+  role: 'user' | 'reviewer' | 'moderator' | 'admin';
+  // account promoted by 
+  @Prop({ type: String, ref: 'Account' })
+  promotedBy?: string; 
+  // account promoted when 
+  @Prop({ type: Date })
+  promotedAt?: Date;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);

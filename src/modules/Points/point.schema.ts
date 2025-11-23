@@ -9,13 +9,16 @@ export class UserPointsHistory {
   userId: string;
 
   @Prop({ required: true })
-  action: 'view' | 'favourite' | 'unfavourite' | 'upload';
+  action: 'view' | 'favourite' | 'unfavourite' | 'upload' | 'challenge_prize';
 
   @Prop({ required: true })
   points: number;
 
   @Prop()
   componentId?: string;
+
+  @Prop()
+  challengeId?: string;
 }
 
 export const UserPointsHistorySchema =

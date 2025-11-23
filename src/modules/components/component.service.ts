@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery } from 'mongoose';
 import { Component } from './component.schema';
+import { CreateComponentDto } from './dto/create-component.dto';
 
 export interface AggregatedComponent {
   _id: string;
@@ -12,12 +13,7 @@ export interface AggregatedComponent {
   status: string;
   viewsCount: number;
   favouritesCount: number;
-  accountId: {
-    _id: string;
-    username: string;
-    fullName: string;
-    avatar: string;
-  } | null;
+  accountId: any;
   reactCode?: string;
   vueCode?: string;
   litCode?: string;
@@ -29,15 +25,14 @@ export class ComponentService {
   constructor(
     @InjectModel(Component.name)
     private readonly componentModel: Model<Component>,
-
     @InjectModel('Favourite') private favouriteModel: Model<any>,
     @InjectModel('View') private viewModel: Model<any>,
   ) {}
 
-  async create(createComponentDto: any): Promise<Component> {
+  async create(dto: CreateComponentDto): Promise<Component> {
     const newComponent = new this.componentModel({
-      ...createComponentDto,
-      status: 'review',
+      ...dto,
+      status: dto.status ?? 'draft',
     });
     return newComponent.save();
   }
@@ -57,6 +52,12 @@ export class ComponentService {
           },
         },
         {
+          $unwind: {
+            path: '$authorDetails',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
           $lookup: {
             from: 'views',
             localField: '_id',
@@ -73,20 +74,20 @@ export class ComponentService {
           },
         },
         {
-          $unwind: {
-            path: '$authorDetails',
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
           $addFields: {
             viewsCount: { $size: '$views' },
             favouritesCount: { $size: '$favourites' },
+
             accountId: {
-              _id: '$authorDetails._id',
-              username: '$authorDetails.userName',
-              fullName: '$authorDetails.fullName',
-              avatar: '$authorDetails.avatar',
+              $cond: {
+                if: { $gt: ['$authorDetails', null] }, // ⭐ SỬA TẠI ĐÂY
+                then: {
+                  _id: '$authorDetails._id',
+                  userName: '$authorDetails.userName',
+                  avatar: '$authorDetails.avatar',
+                },
+                else: null,
+              },
             },
           },
         },
@@ -101,11 +102,9 @@ export class ComponentService {
       .exec();
   }
 
+  // ⭐ FIX: KHÔNG POPULATE → accountId trả về string
   async findOne(id: string): Promise<Component | null> {
-    return this.componentModel
-      .findById(id)
-      .populate('accountId', 'userName avatar')
-      .exec();
+    return this.componentModel.findById(id).exec();
   }
 
   async findByUserAndStatus(
@@ -114,124 +113,89 @@ export class ComponentService {
   ): Promise<Component[]> {
     const query: FilterQuery<Component> = { accountId };
 
-    if (tab === 'post') {
-      query.status = 'public';
-      query.parentId = { $exists: false };
-    } else if (tab === 'variations') {
-      query.status = 'public';
-      query.parentId = { $exists: true };
-    } else if (tab === 'review') {
-      query.status = 'review';
-    } else if (tab === 'rejected') {
-      query.status = 'rejected';
-    } else if (tab === 'draft') {
-      query.status = 'draft';
-    } else {
-      throw new Error('Invalid tab');
-    }
+    if (tab === 'post') query.status = 'public';
+    else if (tab === 'variations') query.status = 'public';
+    else if (tab === 'review') query.status = 'review';
+    else if (tab === 'rejected') query.status = 'rejected';
+    else if (tab === 'draft') query.status = 'draft';
+    else throw new Error('Invalid tab');
 
     return this.componentModel.find(query).exec();
   }
 
-  async update(
-    id: string,
-    updateData: Partial<any>,
-  ): Promise<Component | null> {
-    return this.componentModel
-      .findByIdAndUpdate(id, updateData, { new: true })
-      .exec();
+  async update(id: string, updateData: Partial<CreateComponentDto>) {
+    return this.componentModel.findByIdAndUpdate(id, updateData, { new: true });
   }
 
-  async remove(id: string): Promise<Component | null> {
-    return this.componentModel.findByIdAndDelete(id).exec();
+  async remove(id: string) {
+    return this.componentModel.findByIdAndDelete(id);
   }
 
-  async findOneWithStats(id: string): Promise<any> {
+  async findOneWithStats(id: string) {
     const component = await this.componentModel
       .findById(id)
-      .populate('accountId', 'userName avatar')
-      .exec();
+      .populate('accountId', 'userName avatar email')
+      .lean();
 
     if (!component) return null;
 
-    const favouritesCount = await this.favouriteModel
-      .countDocuments({
-        componentId: id,
-      })
-      .exec();
+    const favouritesCount = await this.favouriteModel.countDocuments({
+      componentId: id,
+    });
 
-    const viewsCount = await this.viewModel
-      .countDocuments({
-        componentId: id,
-      })
-      .exec();
+    const viewsCount = await this.viewModel.countDocuments({
+      componentId: id,
+    });
 
     return {
-      ...component.toObject(),
+      ...component,
       favouritesCount,
       viewsCount,
     };
   }
 
-  async findByStatus(status: string): Promise<AggregatedComponent[]> {
-    const result = await this.componentModel
-      .aggregate<AggregatedComponent>([
-        {
-          $match: { status: status },
+  async findByStatus(status: string) {
+    return this.componentModel.aggregate([
+      { $match: { status } },
+      {
+        $lookup: {
+          from: 'views',
+          localField: '_id',
+          foreignField: 'componentId',
+          as: 'views',
         },
-        {
-          $lookup: {
-            from: 'views',
-            localField: '_id',
-            foreignField: 'componentId',
-            as: 'views',
-          },
+      },
+      {
+        $lookup: {
+          from: 'favourites',
+          localField: '_id',
+          foreignField: 'componentId',
+          as: 'favourites',
         },
-        {
-          $lookup: {
-            from: 'favourites',
-            localField: '_id',
-            foreignField: 'componentId',
-            as: 'favourites',
-          },
+      },
+      {
+        $lookup: {
+          from: 'accounts',
+          localField: 'accountId',
+          foreignField: '_id',
+          as: 'authorDetails',
         },
-        {
-          $lookup: {
-            from: 'accounts',
-            localField: 'accountId',
-            foreignField: '_id',
-            as: 'authorDetails',
-          },
+      },
+      { $unwind: '$authorDetails' },
+      {
+        $addFields: {
+          viewsCount: { $size: '$views' },
+          favouritesCount: { $size: '$favourites' },
+          accountId: '$authorDetails',
         },
-        {
-          $unwind: {
-            path: '$authorDetails',
-            preserveNullAndEmptyArrays: true,
-          },
+      },
+      {
+        $project: {
+          views: 0,
+          favourites: 0,
+          authorDetails: 0,
         },
-        {
-          $addFields: {
-            viewsCount: { $size: '$views' },
-            favouritesCount: { $size: '$favourites' },
-            accountId: {
-              _id: '$authorDetails._id',
-              username: '$authorDetails.userName',
-              fullName: '$authorDetails.fullName',
-              avatar: '$authorDetails.avatar',
-            },
-          },
-        },
-        {
-          $project: {
-            views: 0,
-            favourites: 0,
-            authorDetails: 0,
-          },
-        },
-      ])
-      .exec();
-
-    console.log(`🔍 findByStatus(${status}) => ${result.length} items`);
-    return result ?? [];
+      },
+    ]);
   }
 }

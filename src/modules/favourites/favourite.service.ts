@@ -211,7 +211,7 @@ export class FavouriteService {
           htmlCode: '$component.htmlCode',
           cssCode: '$component.cssCode',
           accountId: {
-            username: '$author.username',
+            username: '$author.userName',
             fullName: '$author.fullName',
             avatar: '$author.avatar',
           },

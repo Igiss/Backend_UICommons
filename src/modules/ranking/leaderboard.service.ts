@@ -21,6 +21,9 @@ export class LeaderboardService {
 
     return this.componentModel.aggregate([
       {
+        $match: { status: 'public' },
+      },
+      {
         $lookup: {
           from: 'views',
           localField: '_id',

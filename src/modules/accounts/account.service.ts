@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, HydratedDocument } from 'mongoose';
 import { Account, AccountDocument } from './account.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Component } from '../components/component.schema';
+<<<<<<< HEAD
 import { BadRequestException } from '@nestjs/common';
 
+=======
+>>>>>>> origin/master
 interface ProviderProfile {
   email: string;
   userName: string;
@@ -176,5 +179,25 @@ export class AccountService {
       .find({ role: 'user' })
       .select('_id userName email avatar')
       .exec();
+  async getBasicInfo(userId: string) {
+    const user = await this.accountModel
+      .findById(userId)
+      .select('userName email')
+      .exec();
+    if (!user) throw new NotFoundException('User not found');
+    return {
+      userName: user.userName,
+      email: user.email,
+    };
+  }
+
+  // 2. Cập nhật thông tin cơ bản
+  async updateBasicInfo(userId: string, newUserName: string) {
+    const user = await this.accountModel
+      .findByIdAndUpdate(userId, { userName: newUserName }, { new: true })
+      .exec();
+
+    if (!user) throw new NotFoundException('User not found');
+    return { userName: user.userName, email: user.email };
   }
 }

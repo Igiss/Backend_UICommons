@@ -16,12 +16,10 @@ export class FavouriteService {
     private readonly pointsService: UserPointsService,
   ) {}
 
-  // Thêm component vào favorites
   async addToFavourites(
     accountId: string,
     componentId: string,
   ): Promise<Favourite> {
-    // Kiểm tra xem đã tồn tại chưa
     const existing = await this.favouriteModel.findOne({
       accountId,
       componentId,
@@ -37,7 +35,6 @@ export class FavouriteService {
     return favourite.save();
   }
 
-  // Xóa component khỏi favorites
   async removeFromFavourites(
     accountId: string,
     componentId: string,
@@ -51,7 +48,6 @@ export class FavouriteService {
     }
   }
 
-  // Toggle favourite (thêm nếu chưa có, xóa nếu đã có)
   async toggleFavourite(
     accountId: string,
     componentId: string,
@@ -62,10 +58,8 @@ export class FavouriteService {
     });
 
     if (!existing) {
-      // ❤️ Thêm favourite
       await this.favouriteModel.create({ accountId, componentId });
 
-      // ➕ Cộng điểm
       await this.pointsService.addPoint(
         accountId,
         componentId,
@@ -76,10 +70,8 @@ export class FavouriteService {
       return { isFavourite: true, message: 'Added' };
     }
 
-    // ❌ Đã tồn tại → bỏ favourite
     await this.favouriteModel.deleteOne({ accountId, componentId });
 
-    // ➖ Trừ điểm
     await this.pointsService.addPoint(
       accountId,
       componentId,
@@ -89,7 +81,7 @@ export class FavouriteService {
 
     return { isFavourite: false, message: 'Removed' };
   }
-  // Lấy tất cả favourites của user
+
   async getFavouritesByAccount(accountId: string): Promise<Favourite[]> {
     return this.favouriteModel
       .find({ accountId })
@@ -101,7 +93,6 @@ export class FavouriteService {
       .exec();
   }
 
-  // Kiểm tra component có trong favourites không
   async isFavourite(accountId: string, componentId: string): Promise<boolean> {
     const favourite = await this.favouriteModel.findOne({
       accountId,
@@ -110,7 +101,6 @@ export class FavouriteService {
     return !!favourite;
   }
 
-  // Lấy danh sách componentIds đã favourite
   async getFavouriteComponentIds(accountId: string): Promise<string[]> {
     const favourites = await this.favouriteModel
       .find({ accountId })
@@ -119,7 +109,6 @@ export class FavouriteService {
     return favourites.map((f) => f.componentId);
   }
 
-  // Đếm số lượng favourites của component
   async countFavouritesByComponent(componentId: string): Promise<number> {
     return this.favouriteModel.countDocuments({ componentId });
   }
@@ -153,7 +142,6 @@ export class FavouriteService {
     return this.favouriteModel.aggregate([
       { $match: { accountId: accountId } },
 
-      // Join với components (string -> string)
       {
         $lookup: {
           from: 'components',
@@ -164,7 +152,6 @@ export class FavouriteService {
       },
       { $unwind: '$component' },
 
-      // Join với accounts (string -> string)
       {
         $lookup: {
           from: 'accounts',
@@ -175,7 +162,6 @@ export class FavouriteService {
       },
       { $unwind: { path: '$author', preserveNullAndEmptyArrays: true } },
 
-      // Join views
       {
         $lookup: {
           from: 'views',
@@ -185,7 +171,6 @@ export class FavouriteService {
         },
       },
 
-      // Join favourites (để đếm)
       {
         $lookup: {
           from: 'favourites',
@@ -195,7 +180,6 @@ export class FavouriteService {
         },
       },
 
-      // Đếm views + favourites
       {
         $addFields: {
           viewsCount: { $size: '$views' },
@@ -203,7 +187,6 @@ export class FavouriteService {
         },
       },
 
-      // Dữ liệu trả về
       {
         $project: {
           _id: '$component._id',
@@ -211,7 +194,7 @@ export class FavouriteService {
           htmlCode: '$component.htmlCode',
           cssCode: '$component.cssCode',
           accountId: {
-            username: '$author.username',
+            username: '$author.userName',
             fullName: '$author.fullName',
             avatar: '$author.avatar',
           },

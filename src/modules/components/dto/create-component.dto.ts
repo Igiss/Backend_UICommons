@@ -79,4 +79,11 @@ export class CreateComponentDto {
     required: false,
   })
   categoryId?: string;
+
+  @ApiProperty({
+    example: 'draft',
+    enum: ['draft', 'review', 'public', 'rejected'],
+    required: false,
+  })
+  status?: 'draft' | 'review' | 'public' | 'rejected';
 }

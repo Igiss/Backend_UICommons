@@ -11,7 +11,11 @@ import { ViewModule } from './modules/views/view.module';
 import { CommentModule } from './modules/comments/comment.module';
 import { PointModule } from './modules/Points/point.module';
 import { LeaderboardModule } from './modules/ranking/leaderboard.module';
+<<<<<<< HEAD
 import { ChallengeModule } from './modules/challenges/challenge.module'; 
+=======
+import { SettingModule } from './modules/setting/setting.module';
+>>>>>>> origin/master
 
 @Module({
   imports: [
@@ -38,7 +42,9 @@ import { ChallengeModule } from './modules/challenges/challenge.module';
     CommentModule,
     PointModule,
     LeaderboardModule,
+
     ChallengeModule, 
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

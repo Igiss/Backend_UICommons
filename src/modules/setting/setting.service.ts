@@ -22,7 +22,6 @@ export class UpdateSettingData {
 export class SettingService {
   constructor(
     @InjectModel(Account.name) private accountModel: Model<Account>,
-    // Inject Model mới
     @InjectModel(UserSetting.name) private settingsModel: Model<UserSetting>,
     @InjectModel(UserAchievements.name)
     private achModel: Model<UserAchievements>,
@@ -55,7 +54,6 @@ export class SettingService {
     return { userName: user.userName, email: user.email };
   }
 
-  // --- 2. DETAILED INFO ---
   async getDetailedInfo(userId: string) {
     const account = (await this.accountModel
       .findById(userId)

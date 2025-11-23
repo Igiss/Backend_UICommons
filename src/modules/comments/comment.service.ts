@@ -12,7 +12,6 @@ export class CommentService {
   async create(createCommentDto: any): Promise<Comment | null> {
     const createdComment = new this.commentModel(createCommentDto);
     const saved = await createdComment.save();
-    // Populate account data before returning
     return this.commentModel
       .findById(saved._id)
       .populate('accountId', 'userName avatar')

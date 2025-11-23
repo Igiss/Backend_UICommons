@@ -1,5 +1,3 @@
-// Dán đè toàn bộ nội dung file component.controller.ts
-
 import {
   Controller,
   Get,
@@ -43,7 +41,6 @@ export class ComponentsController {
     }
 
     const categoryId = dto.categoryId ?? 'default-ui';
-    // Thêm await
     return await this.componentsService.create({
       ...dto,
       accountId,
@@ -53,7 +50,6 @@ export class ComponentsController {
 
   @Get()
   async findAll(): Promise<AggregatedComponent[]> {
-    // Thêm await
     return await this.componentsService.findAll();
   }
 
@@ -67,28 +63,23 @@ export class ComponentsController {
     if (!accountId) {
       throw new UnauthorizedException('User not found');
     }
-    // Thêm await
     return await this.componentsService.findByUserAndStatus(accountId, tab);
   }
   @UseGuards(AdminGuard)
   @Get('review')
   async getReviewComponents() {
     console.log('📥 GET /components/review');
-    // Đã dùng findByStatus()
     const items = await this.componentsService.findByStatus('review');
     console.log('📦 Found review items:', items?.length);
     return Array.isArray(items) ? items : [];
   }
-  // ⭐️ ĐÃ SỬA: Đổi tên hàm gọi và thêm await
   @Get(':id/with-stats')
   async findOneWithStats(@Param('id') id: string): Promise<any> {
-    // Gọi hàm findByStatus (tên mới của findOneWithStats trong service)
     return await this.componentsService.findOneWithStats(id);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    // Thêm await
     return await this.componentsService.findOne(id);
   }
 
@@ -97,27 +88,23 @@ export class ComponentsController {
     @Param('id') id: string,
     @Body() updateComponentDto: Partial<CreateComponentDto>,
   ) {
-    // Thêm await
     return await this.componentsService.update(id, updateComponentDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
-    // Thêm await
     return await this.componentsService.remove(id);
   }
   @UseGuards(AdminGuard)
   @Put(':id/approve')
   async approveComponent(@Param('id') id: string) {
-    // Thêm await
     return await this.componentsService.update(id, { status: 'public' });
   }
 
   @UseGuards(AdminGuard)
   @Put(':id/reject')
   async rejectComponent(@Param('id') id: string) {
-    // Thêm await
     return await this.componentsService.update(id, { status: 'rejected' });
   }
 }

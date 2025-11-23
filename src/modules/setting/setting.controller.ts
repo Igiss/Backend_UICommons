@@ -9,20 +9,18 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../authenticator/jwt-auth.guard';
-// Import đúng tên Service và DTO
 import { SettingService, UpdateSettingData } from './setting.service';
 
 interface RequestWithUser extends Request {
   user: { _id: string };
 }
 
-@Controller('setting') // Đường dẫn API là /setting
+@Controller('setting')
 @UseGuards(JwtAuthGuard)
 export class SettingController {
   // Inject SettingService
   constructor(private readonly service: SettingService) {}
 
-  // --- 1. DETAILED INFO ---
   @Get('detailed-info')
   getDetailedInfo(@Req() req: RequestWithUser) {
     return this.service.getDetailedInfo(req.user._id);
@@ -36,7 +34,6 @@ export class SettingController {
     return this.service.updateDetailedInfo(req.user._id, body);
   }
 
-  // --- 2. BASIC INFO ---
   @Get('basic-info')
   getBasicInfo(@Req() req: RequestWithUser) {
     return this.service.getBasicInfo(req.user._id);
@@ -50,7 +47,6 @@ export class SettingController {
     return this.service.updateBasicInfo(req.user._id, body.userName);
   }
 
-  // --- 3. EMAIL, ACHIEVEMENTS, STATS ---
   @Get('email')
   getEmail(@Req() req: RequestWithUser) {
     return this.service.getEmailSettings(req.user._id);

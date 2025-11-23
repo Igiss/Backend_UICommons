@@ -1,5 +1,3 @@
-// File: src/modules/authenticator/auth.controller.ts
-
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -12,13 +10,11 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {} // --- GOOGLE ROUTES (Giữ nguyên) ---
+  constructor(private readonly authService: AuthService) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-    // Passport sẽ tự động chuyển hướng
-  }
+  async googleAuth() {}
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
@@ -38,13 +34,9 @@ export class AuthController {
     );
   }
 
-  // =======================================================
-  // =======================================================
   @Get('github')
   @UseGuards(AuthGuard('github'))
-  async githubAuth() {
-    // Passport sẽ tự động chuyển hướng sang GitHub
-  }
+  async githubAuth() {}
 
   @Get('github/redirect')
   @UseGuards(AuthGuard('github'))
@@ -58,23 +50,16 @@ export class AuthController {
         `http://localhost:5173/login?error=authentication_failed`,
       );
     }
-
-    // Tái sử dụng logic tạo token từ AuthService
     const { access_token } = await this.authService.loginWithProvider(user);
 
-    // Chuyển hướng về frontend với token
     return res.redirect(
       `http://localhost:5173/login/success?token=${access_token}`,
     );
   }
 
-  // =======================================================
-  // =======================================================
   @Get('discord')
   @UseGuards(AuthGuard('discord'))
-  async discordAuth() {
-    // Passport sẽ tự động chuyển hướng sang discord
-  }
+  async discordAuth() {}
 
   @Get('discord/redirect')
   @UseGuards(AuthGuard('discord'))
@@ -89,10 +74,8 @@ export class AuthController {
       );
     }
 
-    // Tái sử dụng logic tạo token từ AuthService
     const { access_token } = await this.authService.loginWithProvider(user);
 
-    // Chuyển hướng về frontend với token
     return res.redirect(
       `http://localhost:5173/login/success?token=${access_token}`,
     );

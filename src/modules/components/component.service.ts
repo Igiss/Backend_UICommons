@@ -1,12 +1,8 @@
-// Dán đè toàn bộ nội dung file component.service.ts
-
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose'; // 1. Import FilterQuery
+import { Model, FilterQuery } from 'mongoose';
 import { Component } from './component.schema';
 
-// 2. Định nghĩa interface cho kết quả trả về
-// (Giống với IElement bên frontend của bạn)
 export interface AggregatedComponent {
   _id: string;
   title: string;
@@ -46,11 +42,9 @@ export class ComponentService {
     return newComponent.save();
   }
 
-  // 4. Sửa hàm findAll để dùng interface
   async findAll(): Promise<AggregatedComponent[]> {
     return this.componentModel
       .aggregate<AggregatedComponent>([
-        // Thêm kiểu ở đây
         {
           $match: { status: 'public' },
         },
@@ -72,10 +66,10 @@ export class ComponentService {
         },
         {
           $lookup: {
-            from: 'favourites', // Tên collection 'favourites'
+            from: 'favourites',
             localField: '_id',
             foreignField: 'componentId',
-            as: 'favourites', // Tên field tạm thời
+            as: 'favourites',
           },
         },
         {
@@ -87,7 +81,7 @@ export class ComponentService {
         {
           $addFields: {
             viewsCount: { $size: '$views' },
-            favouritesCount: { $size: '$favourites' }, // Đếm từ field 'favourites'
+            favouritesCount: { $size: '$favourites' },
             accountId: {
               _id: '$authorDetails._id',
               username: '$authorDetails.userName',
@@ -99,7 +93,7 @@ export class ComponentService {
         {
           $project: {
             views: 0,
-            favourites: 0, // Xóa field tạm thời 'favourites'
+            favourites: 0,
             authorDetails: 0,
           },
         },
@@ -114,17 +108,15 @@ export class ComponentService {
       .exec();
   }
 
-  // 5. Sửa hàm findByUserAndStatus để dùng FilterQuery
   async findByUserAndStatus(
     accountId: string,
     tab: string,
   ): Promise<Component[]> {
-    // Sửa 'any' thành 'FilterQuery<Component>'
     const query: FilterQuery<Component> = { accountId };
 
     if (tab === 'post') {
-      query.status = 'public'; // Đây giờ đã an toàn (type-safe)
-      query.parentId = { $exists: false }; // Đây cũng vậy
+      query.status = 'public';
+      query.parentId = { $exists: false };
     } else if (tab === 'variations') {
       query.status = 'public';
       query.parentId = { $exists: true };
@@ -138,7 +130,7 @@ export class ComponentService {
       throw new Error('Invalid tab');
     }
 
-    return this.componentModel.find(query).exec(); // Lỗi L126 đã được sửa
+    return this.componentModel.find(query).exec();
   }
 
   async update(
@@ -185,10 +177,8 @@ export class ComponentService {
     const result = await this.componentModel
       .aggregate<AggregatedComponent>([
         {
-          $match: { status: status }, // 1. Lọc theo status
+          $match: { status: status },
         },
-        // Thêm $lookup cho Views và Favourites (để khớp với AggregatedComponent)
-        // Lưu ý: Nếu Views và Favourites collection sử dụng String componentId, bước này sẽ OK.
         {
           $lookup: {
             from: 'views',
@@ -205,12 +195,11 @@ export class ComponentService {
             as: 'favourites',
           },
         },
-        // 2. Lookup thông tin tác giả (Tên collection là 'accounts')
         {
           $lookup: {
             from: 'accounts',
-            localField: 'accountId', // String (UUID)
-            foreignField: '_id', // Phải là String (UUID) trong accounts collection
+            localField: 'accountId',
+            foreignField: '_id',
             as: 'authorDetails',
           },
         },
@@ -226,7 +215,7 @@ export class ComponentService {
             favouritesCount: { $size: '$favourites' },
             accountId: {
               _id: '$authorDetails._id',
-              username: '$authorDetails.userName', // MAP 'userName' TỪ DB THÀNH 'username'
+              username: '$authorDetails.userName',
               fullName: '$authorDetails.fullName',
               avatar: '$authorDetails.avatar',
             },

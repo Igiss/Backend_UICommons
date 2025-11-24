@@ -22,6 +22,19 @@ interface AuthenticatedRequest extends Request {
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
+  @UseGuards(AdminGuard)
+  @Get('eligible-for-promotion')
+  async getEligibleUsers() {
+    return this.accountService.getEligibleUsers();
+  }
+
+  @UseGuards(AdminGuard)
+  @Get('reviewers')
+  async getReviewers() {
+    return this.accountService.getReviewers();
+  }
+
+
   // 🟢 CREATE
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
@@ -72,17 +85,8 @@ export class AccountController {
   }
 // ====== role management (admin only)
 
-  @UseGuards(AdminGuard)
-  @Get('eligible-for-promotion')
-  async getEligibleUsers() {
-    return this.accountService.getEligibleUsers();
-  }
 
-  @UseGuards(AdminGuard)
-  @Get('reviewers')
-  async getReviewers() {
-    return this.accountService.getReviewers();
-  }
+
 
   @UseGuards(AdminGuard)
   @Put(':id/promote')

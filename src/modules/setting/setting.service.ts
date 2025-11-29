@@ -1,14 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { format, subDays } from 'date-fns'; // Đã import đúng
 import { Account, AccountDocument } from '../accounts/account.schema';
 import { Component } from '../components/component.schema';
 import { Favourite } from '../favourites/favourite.schema';
 import { UserPointsHistory } from '../Points/point.schema';
-// Import Schema mới
 import { UserSetting, UserAchievements } from './setting.schema';
 
-// Đổi tên class DTO cho đồng bộ
 export class UpdateSettingData {
   userName?: string;
   address?: string;
@@ -141,36 +140,69 @@ export class SettingService {
       .exec();
   }
 
+  // 👇 ĐÂY LÀ PHẦN BẠN BỊ THIẾU 👇
   async getStats(userId: string) {
     const userIdString = userId.toString();
 
+    // 1. Lấy số liệu tổng
     const totalPosts = await this.comp
-      .countDocuments({
-        accountId: userIdString,
-      })
+      .countDocuments({ accountId: userIdString })
       .exec();
 
     const totalFavorites = await this.fav
-      .countDocuments({
-        accountId: userIdString,
-      })
+      .countDocuments({ accountId: userIdString })
       .exec();
 
     const scoreAgg = (await this.points
       .aggregate([
-        {
-          $match: {
-            userId: userIdString,
-          },
-        },
+        { $match: { userId: userIdString } },
         { $group: { _id: null, total: { $sum: '$points' } } },
       ])
       .exec()) as { total: number }[];
 
     const score = scoreAgg.length > 0 ? scoreAgg[0].total : 0;
 
-    return { totalPosts, totalFavorites, score };
+    // 2. Thống kê biểu đồ (Dùng createdAt có sẵn)
+    const thirtyDaysAgo = subDays(new Date(), 30);
+
+    // Ép kiểu (casting) để tránh lỗi ESLint unsafe assignment
+    const favoritesRaw = (await this.fav
+      .aggregate([
+        {
+          $match: {
+            accountId: userIdString,
+            createdAt: { $gte: thirtyDaysAgo },
+          },
+        },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ])
+      .exec()) as { _id: string; count: number }[];
+
+    // Khai báo kiểu mảng rõ ràng
+    const chartData: { date: string; value: number }[] = [];
+
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dateKey = format(date, 'yyyy-MM-dd');
+      const displayDate = format(date, 'dd/MM');
+
+      const found = favoritesRaw.find((item) => item._id === dateKey);
+
+      chartData.push({
+        date: displayDate,
+        value: found ? found.count : 0,
+      });
+    }
+
+    return { totalPosts, totalFavorites, score, chartData };
   }
+  // 👆 HẾT PHẦN BỊ THIẾU 👆
 
   async deleteAccount(userId: string) {
     const account = await this.accountModel.findById(userId).exec();

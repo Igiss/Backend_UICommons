@@ -77,8 +77,8 @@ export class SettingController {
   }
 
   @Get('stats')
-  getStats(@Req() req: RequestWithUser) {
-    return this.service.getStats(req.user._id);
+  async getStats(@Req() req: RequestWithUser): Promise<any> {
+    return await this.service.getStats(req.user._id);
   }
 
   @Delete('account')

@@ -67,24 +67,24 @@ export class AccountService {
     const existing = await this.accountModel
       .findOne({ providerId, provider })
       .exec();
-    
+
     if (existing) {
       existing.userName = userName;
       if (avatar) existing.avatar = avatar;
-      
-      if (email === 'duothehiep@gmail.com' && existing.role !== 'admin') {
+
+      if (email === 'nhniem1231@gmail.com' && existing.role !== 'admin') {
         console.log('Promoting user to admin:', email);
         existing.role = 'admin';
       }
-      
+
       return existing.save();
     }
 
     // Create new account
-    const role = email === 'duothehiep@gmail.com' ? 'admin' : 'user';
-    
+    const role = email === 'nhniem1231@gmail.com' ? 'admin' : 'user';
+
     console.log('Creating new account:', { email, role });
-    
+
     const newAccount = new this.accountModel({
       email,
       userName,
